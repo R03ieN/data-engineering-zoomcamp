@@ -25,6 +25,8 @@ What's the version of `pip` in the image?
 - 24.2.1
 - 23.3.1
 
+Answer: 25.3
+
 
 ## Question 2. Understanding Docker networking and docker-compose
 
@@ -69,6 +71,10 @@ volumes:
 - db:5432
 
 If multiple answers are correct, select any 
+Answer:
+- db:5432
+- postgres:5432
+
 
 
 ## Prepare the Data
@@ -94,6 +100,17 @@ For the trips in November 2025 (lpep_pickup_datetime between '2025-11-01' and '2
 - 8,254
 - 8,421
 
+Answer:8007
+
+```sql
+SELECT COUNT(*)
+FROM green_taxi_trips
+WHERE lpep_pickup_datetime >= '2025-11-01'
+  AND lpep_pickup_datetime < '2025-12-01'
+  AND trip_distance <= 1.0;
+```
+
+
 
 ## Question 4. Longest trip for each day
 
@@ -106,6 +123,17 @@ Use the pick up time for your calculations.
 - 2025-11-23
 - 2025-11-25
 
+Answer: 2025-12-01
+
+```sql 
+SELECT 
+	DATE(lpep_pickup_datetime) 
+	trip_distance  
+FROM green_taxi_trips
+WHERE trip_distance < 100
+ORDER BY trip_distance DESC
+LIMIT 1
+```
 
 ## Question 5. Biggest pickup zone
 
@@ -115,6 +143,20 @@ Which was the pickup zone with the largest `total_amount` (sum of all trips) on 
 - East Harlem South
 - Morningside Heights
 - Forest Hills
+
+Answer: East Harlem North  
+
+```sql
+SELECT
+    z."Zone",
+    SUM(t.total_amount) AS total_revenue
+FROM green_taxi_trips t
+JOIN zones z ON t."PULocationID" = z."LocationID"
+WHERE DATE(t.lpep_pickup_datetime) = '2025-11-18'
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 1;
+```
 
 
 ## Question 6. Largest tip
@@ -127,6 +169,22 @@ Note: it's `tip` , not `trip`. We need the name of the zone, not the ID.
 - Yorkville West
 - East Harlem North
 - LaGuardia Airport
+
+Answer: Yorkville West
+
+```sql 
+SELECT
+    do_zone."Zone" as dropoff_zone,
+    t.tip_amount
+FROM green_taxi_trips t
+JOIN zones pu_zone ON t."PULocationID" = pu_zone."LocationID"
+JOIN zones do_zone ON t."DOLocationID" = do_zone."LocationID"
+WHERE pu_zone."Zone" = 'East Harlem North'
+  AND t.lpep_pickup_datetime >= '2025-11-01'
+  AND t.lpep_pickup_datetime < '2025-12-01'
+ORDER BY t.tip_amount DESC
+LIMIT 1;
+```
 
 
 ## Terraform
@@ -154,6 +212,7 @@ Answers:
 - terraform init, terraform apply -auto-approve, terraform destroy
 - terraform import, terraform apply -y, terraform rm
 
+Correct Answer: terraform init, terraform apply -auto-approve, terraform destroy
 
 ## Submitting the solutions
 
